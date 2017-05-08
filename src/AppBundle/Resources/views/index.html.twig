@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Welcome to chat</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src={{ asset('bundles/goswebsocket/js/vendor/autobahn.min.js') }}></script>
+    <script src={{ asset('bundles/goswebsocket/js/gos_web_socket_client.js') }}></script>
+</head>
+<body>
+    <div class="chat_wrapper">
+        <div class="message_box" id="message_box"></div>
+        <div class="panel">
+            <input type="text" name="message" id="message" placeholder="Message" maxlength="80" style="width:60%" />
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    <script>
+        var websocket = WS.connect("ws://127.0.0.1:1337");
+        websocket.on("socket/connect", function(session){
+            $(document).ready(function () {
+                $('#send-btn').click(function () {
+                    var input_message = $('#message').val();
+                    session.call("sample/sum", input_message).then(
+                        function(message) {
+                            var chat_message = message['result'];
+                            $('#message_box').append(chat_message+'<br>');
+                            $('#message').val('');
+                        },
+                        function(error, desc)
+                        {
+                            console.log("RPC Error", error, desc);
+                        }
+                    );
+                });
+            });
+        });
+        websocket.on("socket/disconnect", function(error){
+            //error provides us with some insight into the disconnection: error.reason and error.code
+            console.log("Disconnected for " + error.reason + " with code " + error.code);
+        });
+    </script>
+</body>
+</html>
